@@ -1,0 +1,25 @@
+{
+  "name": "bt",
+  "description": "bt theme",
+  "main": [
+    "src/less/styles.less"
+  ],
+  "authors": [
+    "David Gustafsson <glasklas@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-sass": "^3.3.7",
+    "bootswatch-dist": "sandstone",
+    "font-awesome": "fontawesome#^4.7.0"
+  }
+}
