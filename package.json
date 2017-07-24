@@ -21,6 +21,5 @@
     "wiredep": "^4.0.0"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.js"
   }
 }
