@@ -8,6 +8,8 @@ const clean = require('gulp-clean');
 const babel = require('gulp-babel');
 const concat = require('gulp-concat');
 const size = require('gulp-size');
+const replace = require('gulp-replace');
+//const inject = require('gulp-inject');
 //const wiredep = require('wiredep')({}).stream;
 //const notify = require('gulp-notify');
 
@@ -31,14 +33,20 @@ gulp.task('vendors', function() {
 });
 */
 //gulp.parallel?
-
+const config = {
+  bootswatchTheme: 'sandstone',
+}
+//TODO: notify which theme is used
+// Use gulp-if to enable disable different parts depending on prod/dev
 gulp.task('styles', function() {
   return gulp.src('./src/sass/**/*.scss')
+  .pipe(replace('__bootswatch_theme__', config.bootswatchTheme))
 	.pipe(sourcemaps.init())
 	.pipe(sass({
     includePaths: [
       path.resolve(__dirname, 'bower_components/bootstrap-sass/assets/stylesheets'),
       path.resolve(__dirname, 'bower_components/font-awesome/scss'),
+      path.resolve(__dirname, 'bower_components/bootswatch'),
       path.resolve(__dirname, 'src/sass') //needed, try remove?
     ]
   }).on('error', sass.logError))
@@ -49,7 +57,6 @@ gulp.task('styles', function() {
 });
 
 // TODO: THIS>>>>>> Compiling bootstrap js
-// Build js
 gulp.task('scripts', function() {
 	return gulp.src(['.src/js/button.js'])
 	.pipe(babel())
@@ -57,7 +64,6 @@ gulp.task('scripts', function() {
 	.pipe(gulp.dest('./dist/js'));
 });
 
-// Watch
 gulp.task('watch', function() {
   // How add event handler on both the right way?
   gulp.watch('./src/js/**/*.js', ['scripts']);
@@ -67,7 +73,12 @@ gulp.task('watch', function() {
   });
 });
 
-gulp.task('build', function() {
+gulp.task('dist-clean', function() {
+  return gulp.src('./dist', {read: false})
+  .pipe(clean()); //.on('error')?
+});
+
+gulp.task('build', ['dist-clean', 'styles', 'scripts'], function() {
   const s = size({
     title: 'Copying fonts',
     showFiles: true,
@@ -79,20 +90,7 @@ gulp.task('build', function() {
   .pipe(gulp.dest('./dist/fonts'));
 });
 
-gulp.task('dist-clean', function() {
-  return gulp.src('./dist', {read: false})
-  .pipe(clean()); //.on('error')?
-});
-
-//TODO: build task and default => build
-gulp.task('default', ['styles', 'scripts', 'watch']);
-
-//?
-/*
-gulp.task('default', ['dist-clean'], function() {
-  gulp.start(['styles', 'scripts', 'watch']);
-});
-*/
+gulp.task('default', ['build', 'watch']);
 
 //gulp-filter
 //gulp-shorthand
