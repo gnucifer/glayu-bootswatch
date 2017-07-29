@@ -9,7 +9,8 @@ const babel = require('gulp-babel');
 const concat = require('gulp-concat');
 const size = require('gulp-size');
 const replace = require('gulp-replace');
-//const inject = require('gulp-inject');
+const all = require('gulp-all');
+const inject = require('gulp-inject');
 //const wiredep = require('wiredep')({}).stream;
 //const notify = require('gulp-notify');
 
@@ -53,19 +54,43 @@ gulp.task('styles', function() {
   .pipe(autoprefixer(['last 2 versions', '> 5%', 'Firefox ESR'])) //['last 1 version'] {cascade: true} ?
    //.pipe(concat('all.css'))
 	.pipe(sourcemaps.write())
-	.pipe(gulp.dest('./dist'));
+	.pipe(gulp.dest('./dist/assets/css'));
 });
 
 // TODO: THIS>>>>>> Compiling bootstrap js
 gulp.task('scripts', function() {
-	return gulp.src(['.src/js/button.js'])
+	return gulp.src(['./src/js/button.js'])
 	.pipe(babel())
 	.pipe(concat('./bootstrap.js'))
-	.pipe(gulp.dest('./dist/js'));
+	.pipe(gulp.dest('./dist/assets/js'));
+});
+
+gulp.task('templates', ['styles'], function() { //TODO: also add js
+  /*
+  return all();
+  */
+  // Or use event stream?
+  return gulp.src(['./src/_layouts/**.eex', './src/_partials/**.eex'], {base: './src'})
+  .pipe(
+    inject(
+      gulp.src([
+          './dist/assets/css/**/**.css',
+          './dist/assets/js/**/**.js'
+        ], {
+          read: false,
+        }
+      ), {
+        addRootSlash: true,
+        ignorePath: ['src', 'dist'] //src not currently used
+      }
+    )
+  )
+  .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('watch', function() {
   // How add event handler on both the right way?
+  // TODO: gulp-all
   gulp.watch('./src/js/**/*.js', ['scripts']);
   gulp.watch('./src/sass/**/*.scss', ['styles'])
   .on('change', function(event) {
@@ -74,6 +99,7 @@ gulp.task('watch', function() {
 });
 
 gulp.task('dist-clean', function() {
+  // TODO: Filter, dont delete .gitkeep, or don't track dist?
   return gulp.src('./dist', {read: false})
   .pipe(clean()); //.on('error')?
 });
@@ -84,10 +110,17 @@ gulp.task('build', ['dist-clean', 'styles', 'scripts'], function() {
     showFiles: true,
     showTotal: true,
   });
-  // Copy font-awesome fonts
   return gulp.src('./bower_components/font-awesome/fonts/**/**.*')
   .pipe(s)
-  .pipe(gulp.dest('./dist/fonts'));
+  .pipe(gulp.dest('./dist/assets/fonts'));
+
+  // Copy font-awesome fonts
+  //return all(
+  //  gulp.src('./bower_components/font-awesome/fonts/**/**.*')
+  //    .pipe(s)
+  //    .pipe(gulp.dest('./dist/assets/fonts')),
+  //  gulp.src(['./src/_layouts/**.eex', './src/_partials/**.eex'], {base: './src'})
+  //    .pipe(gulp.dest('./dist'))
 });
 
 gulp.task('default', ['build', 'watch']);
