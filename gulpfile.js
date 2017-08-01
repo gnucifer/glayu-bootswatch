@@ -3,28 +3,36 @@ const gulp = require('gulp');
 // Gulp plugins
 const sass = require('gulp-sass');
 const sourcemaps = require('gulp-sourcemaps');
-const autoprefixer = require('gulp-autoprefixer');
 const clean = require('gulp-clean');
 const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
 const concat = require('gulp-concat');
 const size = require('gulp-size');
 const replace = require('gulp-replace');
 const all = require('gulp-all');
+const sequence = require('gulp-sequence');
 const inject = require('gulp-inject');
-//const wiredep = require('wiredep')({}).stream;
-//const notify = require('gulp-notify');
+const shell = require('gulp-shell');
+const postcss = require('gulp-postcss');
+const gulpif = require('gulp-if');
+const cssnano = require('cssnano');
+const autoprefixer = require('autoprefixer');
+const pump = require('pump');
+const browserSync = require('browser-sync').create();
+const reload      = browserSync.reload;
+const path = require('path');
 
 // Other stuff
-const path = require('path');
-/*
-const gulpLoadPlugins = require('gulp-load-plugins');
-const $ = gulpLoadPlugins();
-*/
-
-//TODO: Check my vim conf, seems fucked
-//const mainBowerFiles = require('main-bower-files');
-//const filter = require('gulp-filter');
-//const concat = require('gulp-concat');
+// gulp-plumber for preventing stop on errors on watch-tasks
+// gulp-filter
+// const wiredep = require('wiredep')({}).stream;
+// gulp-todo
+// gulp-modernizr?
+// gulp-sharp resize images
+// const notify = require('gulp-notify');
+// const mainBowerFiles = require('main-bower-files');
+// const filter = require('gulp-filter');
+// const concat = require('gulp-concat');
 /*
 gulp.task('vendors', function() {
    return gulp.src(mainBowerFiles())
@@ -33,16 +41,39 @@ gulp.task('vendors', function() {
    .pipe(gulp.dest('dist/styles'));
 });
 */
-//gulp.parallel?
+
+const gulpLoadPlugins = require('gulp-load-plugins');
+const $ = gulpLoadPlugins();
+// TODO: read from json/yaml file
 const config = {
-  bootswatchTheme: 'sandstone',
-}
-//TODO: notify which theme is used
-// Use gulp-if to enable disable different parts depending on prod/dev
+  production: true,
+  bootswatch: {
+    theme: 'sandstone'
+  },
+  glayu: {
+    bin: 'glayu',
+    root: '/path/to/glayu/site/root',
+    public: '/path/to/glayu/public/directory', //TODO: allow relative path to root
+    theme: 'theme_directory_name'
+  }
+};
+
+gulp.task('serve', ['glayu-watch'], function() {
+  browserSync.init({
+    server: {
+      baseDir: config.glayu.public
+    }
+  });
+  //gulp.watch(path.join(config.glayu.public, '**/*.*')).on('change', reload);
+});
+
+// TODO: notify which theme is used
+// TODO: Selectively include bootstrap css for smaller size?
 gulp.task('styles', function() {
+  //cssnext?
   return gulp.src('./src/sass/**/*.scss')
-  .pipe(replace('__bootswatch_theme__', config.bootswatchTheme))
-	.pipe(sourcemaps.init())
+  .pipe(replace('__bootswatch_theme__', config.bootswatch.theme))
+	.pipe(gulpif(!config.production, sourcemaps.init()))
 	.pipe(sass({
     includePaths: [
       path.resolve(__dirname, 'bower_components/bootstrap-sass/assets/stylesheets'),
@@ -51,24 +82,34 @@ gulp.task('styles', function() {
       path.resolve(__dirname, 'src/sass') //needed, try remove?
     ]
   }).on('error', sass.logError))
-  .pipe(autoprefixer(['last 2 versions', '> 5%', 'Firefox ESR'])) //['last 1 version'] {cascade: true} ?
-   //.pipe(concat('all.css'))
-	.pipe(sourcemaps.write())
-	.pipe(gulp.dest('./dist/assets/css'));
+  .pipe(
+    postcss([
+      autoprefixer(['last 2 versions', '> 5%', 'Firefox ESR']), //['last 1 version'] {cascade: true} ?
+      cssnano()
+    ])
+  )
+  //.pipe(concat('all.css'))
+  .pipe(gulpif(!config.production, sourcemaps.write()))
+  .pipe(gulp.dest('./dist/assets/css'));
 });
 
-// TODO: THIS>>>>>> Compiling bootstrap js
-gulp.task('scripts', function() {
-	return gulp.src(['./src/js/button.js'])
-	.pipe(babel())
-	.pipe(concat('./bootstrap.js'))
-	.pipe(gulp.dest('./dist/assets/js'));
+gulp.task('scripts', function(done) {
+  pump([
+      gulp.src([
+        './bower_components/jquery/dist/jquery.js',
+        './bower_components/bootstrap-sass/assets/javascripts/bootstrap/collapse.js',
+        './bower_components/bootstrap-sass/assets/javascripts/bootstrap/transition.js'
+      ]),
+      babel(),
+      uglify(),
+      concat('./script.js'),
+      gulp.dest('./dist/assets/js')
+    ],
+    done
+  );
 });
 
-gulp.task('templates', ['styles'], function() { //TODO: also add js
-  /*
-  return all();
-  */
+gulp.task('templates', ['styles', 'scripts'], function() { //TODO: also add js
   // Or use event stream?
   return gulp.src(['./src/_layouts/**.eex', './src/_partials/**.eex'], {base: './src'})
   .pipe(
@@ -81,21 +122,73 @@ gulp.task('templates', ['styles'], function() { //TODO: also add js
         }
       ), {
         addRootSlash: true,
-        ignorePath: ['src', 'dist'] //src not currently used
+        ignorePath: 'dist'
       }
     )
   )
   .pipe(gulp.dest('./dist'));
 });
 
+gulp.task('glayu-build', function(done) {
+  let reloadBrowserSync = function() {
+    reload();
+    done();
+  };
+  (shell.task([
+    ['cd', '"' + config.glayu.root + '"', '&&', '"' + config.glayu.bin + '"', 'build'].join(' ')
+  ]))(reloadBrowserSync);
+});
+
+gulp.task('glayu-deploy-template', function() {
+  const s = size({
+    title: 'Copying theme',
+    showFiles: true,
+    showTotal: true,
+  });
+  return gulp.src('./dist/**/*.*')
+  .pipe(s)
+  .pipe(
+    gulp.dest(
+      path.join(config.glayu.root, 'themes', config.glayu.theme)
+    )
+  );
+});
+
+gulp.task('glayu-deploy', function(callback) {
+  sequence('glayu-deploy-template', 'glayu-build')(callback);
+});
+
+// TODO: Fix (error handling etc, pump?
 gulp.task('watch', function() {
   // How add event handler on both the right way?
-  // TODO: gulp-all
   gulp.watch('./src/js/**/*.js', ['scripts']);
   gulp.watch('./src/sass/**/*.scss', ['styles'])
   .on('change', function(event) {
     console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
   });
+});
+
+// TODO: glayu-deploy-watch, better name?
+// TODO: possible to stream directly to glayu without complexing to much?
+gulp.task('glayu-watch', function() {
+  var notify = function(event) {
+    console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+  };
+  var log_error = function(err) {
+    if (err) {
+      console.log(err);
+    }
+  };
+  gulp.watch('./src/js/**/*.js', function() {
+    sequence('scripts', 'glayu-deploy')(log_error);
+  }).on('change', notify);
+  gulp.watch('./src/sass/**/*.scss', function() {
+    sequence('styles', 'glayu-deploy')(log_error);
+  }).on('change', notify);
+  // This also unnecessarily triggers rebuild of js + css, fix?
+  gulp.watch(['./src/_layouts/**.eex', './src/_partials/**.eex'], function() {
+    sequence('templates', 'glayu-deploy')(log_error);
+  }).on('change', notify);
 });
 
 gulp.task('dist-clean', function() {
@@ -104,14 +197,17 @@ gulp.task('dist-clean', function() {
   .pipe(clean()); //.on('error')?
 });
 
-gulp.task('build', ['dist-clean', 'styles', 'scripts'], function() {
+//TODO: Remove 'styles', 'scripts' since will be run by 'templates'?
+gulp.task('build', ['dist-clean', 'styles', 'scripts', 'templates'], function() {
   const s = size({
     title: 'Copying fonts',
     showFiles: true,
     showTotal: true,
   });
-  return gulp.src('./bower_components/font-awesome/fonts/**/**.*')
-  .pipe(s)
+  return gulp.src([
+    './bower_components/font-awesome/fonts/**/**.*',
+    './bower_components/bootstrap-sass/assets/fonts/**/**.*', //TODO: Must be better way
+  ]).pipe(s)
   .pipe(gulp.dest('./dist/assets/fonts'));
 
   // Copy font-awesome fonts
@@ -124,23 +220,3 @@ gulp.task('build', ['dist-clean', 'styles', 'scripts'], function() {
 });
 
 gulp.task('default', ['build', 'watch']);
-
-//gulp-filter
-//gulp-shorthand
-//gulp-css
-//gulp-babel
-//gulp-modernizr?
-//gulp-uglify
-//gulp-concat
-//gulp-shell (for building site)
-//gulp-clean and gulp-copy, stada i dist/source?
-//gulp-todo
-//gulp-postcss
-//autoprefixer-core - autoprefix css without worrying about browser specific prefixes. Use this instead of gulp-autoprefixer if using gulp-postcss
-//gulp-sharp resize images
-//gulp-if - adds conditionals in gulp pipeline
-/* In prod:
-var gulp = require('gulp');
-var postcss = require('gulp-postcss');
-var uncss = require('postcss-uncss');
-*/

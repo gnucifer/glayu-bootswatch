@@ -1,6 +1,6 @@
 {
-  "name": "bt",
-  "description": "bt theme",
+  "name": "Glayu Bootswatch",
+  "description": "Bootswatch theme builder for Glayu static site generator.",
   "main": [
     "src/less/styles.less"
   ],
