@@ -1,6 +1,4 @@
 <% use Glayu.EEx %>
-<div id="wrapper">
-  <% front_page = pages() |> Enum.find(%{content: "", title: ""}, fn(page) -> page.path == "/index.html" end)  %>
-  <h1><%= front_page.title %></h1>
-  <%= front_page.content %>
-</div>
+<% front_page = pages() |> Enum.find(%{content: "", title: ""}, fn(page) -> page.path == "/index.html" end)  %>
+<!-- <h1><%# front_page.title %></h1> -->
+<%= front_page.content %>

@@ -23,6 +23,8 @@
     </head>
     <body>
       <%= partial "navbar" %>
-      <%= @inner %>
+      <div class="container">
+        <%= @inner %>
+      </div>
     </body>
 </html>
