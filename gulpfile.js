@@ -15,11 +15,12 @@ const inject = require('gulp-inject');
 const shell = require('gulp-shell');
 const postcss = require('gulp-postcss');
 const gulpif = require('gulp-if');
+const watch = require('gulp-watch');
 const cssnano = require('cssnano');
 const autoprefixer = require('autoprefixer');
 const pump = require('pump');
 const browserSync = require('browser-sync').create();
-const reload      = browserSync.reload;
+const reload = browserSync.reload;
 const path = require('path');
 
 // Other stuff
@@ -110,12 +111,12 @@ gulp.task('scripts', function(done) {
 
 gulp.task('templates', ['styles', 'scripts'], function() { //TODO: also add js
   // Or use event stream?
-  return gulp.src(['./src/_layouts/**.eex', './src/_partials/**.eex'], {base: './src'})
+  return gulp.src(['./src/_layouts/*.eex', './src/_partials/*.eex'], {base: './src'})
   .pipe(
     inject(
       gulp.src([
-          './dist/assets/css/**/**.css',
-          './dist/assets/js/**/**.js'
+          './dist/assets/css/**/*.css',
+          './dist/assets/js/**/*.js'
         ], {
           read: false,
         }
@@ -178,6 +179,7 @@ gulp.task('glayu-watch', function() {
       console.log(err);
     }
   };
+  //TODO: use gulp-watch instead
   gulp.watch('./src/js/**/*.js', function() {
     sequence('scripts', 'glayu-deploy')(log_error);
   }).on('change', notify);
@@ -185,9 +187,11 @@ gulp.task('glayu-watch', function() {
     sequence('styles', 'glayu-deploy')(log_error);
   }).on('change', notify);
   // This also unnecessarily triggers rebuild of js + css, fix?
-  gulp.watch(['./src/_layouts/**.eex', './src/_partials/**.eex'], function() {
+  gulp.watch(['./src/_layouts/*.eex', './src/_partials/*.eex'], function() {
     sequence('templates', 'glayu-deploy')(log_error);
   }).on('change', notify);
+  gulp.watch(path.join(config.glayu.source, '**/*.*'), ['glayu-build'])
+  .on('change', notify);
 });
 
 gulp.task('dist-clean', function() {
@@ -203,8 +207,8 @@ gulp.task('build', ['dist-clean', 'templates'], function() {
     showTotal: true,
   });
   return gulp.src([
-    './bower_components/font-awesome/fonts/**/**.*',
-    './bower_components/bootstrap-sass/assets/fonts/**/**.*', //TODO: Must be better way
+    './bower_components/font-awesome/fonts/**/*.*',
+    './bower_components/bootstrap-sass/assets/fonts/**/*.*', //TODO: Must be better way
   ]).pipe(s)
   .pipe(gulp.dest('./dist/assets/fonts'));
 

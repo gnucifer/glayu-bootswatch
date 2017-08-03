@@ -26,6 +26,7 @@
     "gulp-size": "^2.1.0",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-uglify": "^3.0.0",
+    "gulp-watch": "^4.3.11",
     "node-sass": "^4.5.3",
     "pump": "^1.0.2",
     "wiredep": "^4.0.0"
