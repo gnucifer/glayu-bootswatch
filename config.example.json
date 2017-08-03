@@ -1,0 +1,12 @@
+{
+ "production": true,
+  "bootswatch": {
+    "theme": "sandstone"
+  },
+  "glayu": {
+    "bin": "glayu",
+    "root": "/path/to/glayu/site/root",
+    "public": "/path/to/glayu/public/directory",
+    "theme": "theme_directory_name"
+  }
+}

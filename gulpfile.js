@@ -41,22 +41,21 @@ gulp.task('vendors', function() {
    .pipe(gulp.dest('dist/styles'));
 });
 */
-
-const gulpLoadPlugins = require('gulp-load-plugins');
-const $ = gulpLoadPlugins();
-// TODO: read from json/yaml file
-const config = {
-  production: true,
-  bootswatch: {
-    theme: 'sandstone'
-  },
-  glayu: {
-    bin: 'glayu',
-    root: '/path/to/glayu/site/root',
-    public: '/path/to/glayu/public/directory', //TODO: allow relative path to root
-    theme: 'theme_directory_name'
+//const gulpLoadPlugins = require('gulp-load-plugins');
+//const $ = gulpLoadPlugins();
+var config;
+try {
+  config = require('./config.json');
+}
+catch(err) {
+  if (err.code === 'MODULE_NOT_FOUND') {
+    console.log('config.json not found, please copy config.example.json to config.json and set config values.');
+    process.exit(1);
   }
-};
+  else {
+    throw err;
+  }
+}
 
 gulp.task('serve', ['glayu-watch'], function() {
   browserSync.init({
