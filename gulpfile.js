@@ -196,8 +196,7 @@ gulp.task('dist-clean', function() {
   .pipe(clean()); //.on('error')?
 });
 
-//TODO: Remove 'styles', 'scripts' since will be run by 'templates'?
-gulp.task('build', ['dist-clean', 'styles', 'scripts', 'templates'], function() {
+gulp.task('build', ['dist-clean', 'templates'], function() {
   const s = size({
     title: 'Copying fonts',
     showFiles: true,
