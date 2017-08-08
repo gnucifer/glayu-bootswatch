@@ -96,6 +96,7 @@ gulp.task('styles', function() {
 gulp.task('scripts', function(done) {
   pump([
       gulp.src([
+        './src/js/**/*.js',
         './bower_components/jquery/dist/jquery.js',
         './bower_components/bootstrap-sass/assets/javascripts/bootstrap/collapse.js',
         './bower_components/bootstrap-sass/assets/javascripts/bootstrap/transition.js'

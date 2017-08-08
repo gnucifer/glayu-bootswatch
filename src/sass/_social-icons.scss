@@ -1,0 +1,14 @@
+//TODO: use sematic classes instead
+.navbar-right li a {
+    padding-right: 0px;
+}
+
+@media (max-width: $screen-sm-min) {
+  .navbar-right li {
+    float: left;
+  }
+  .navbar-right li a {
+    padding-bottom: 5px;
+    padding-top: 5px;
+  }
+}

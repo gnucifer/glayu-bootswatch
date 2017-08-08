@@ -1,0 +1,12 @@
+.post {
+  margin-bottom: $line-height-computed * 3;
+}
+
+.post-summary {
+  margin-bottom: $line-height-computed * 1;
+}
+
+.post-title a {
+  border: 0;
+  border-bottom: 1px solid $hr-border;
+}
