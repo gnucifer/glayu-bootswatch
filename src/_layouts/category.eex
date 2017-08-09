@@ -9,10 +9,12 @@
         <li class="active"><%= @page.category.name %></li>
       </ul>
     </div>
-    <h1><%= @page.category.name %></h1>
   <% end %>
   <div class="row">
     <div class="col-xs-12 col-sm-8">
+      <%= if length(parents) > 0 do %>
+        <h1><%= @page.category.name %></h1>
+      <% end %>
       <% latest_category_posts = category_posts(@page.category.keys, [limit: 10]) %>
       <%= for post <- latest_category_posts do %>
         <article class="post" role="article">
