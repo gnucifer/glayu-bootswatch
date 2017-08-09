@@ -6,8 +6,8 @@
   "glayu": {
     "bin": "glayu",
     "root": "/path/to/glayu/site/root",
-    "public": "/path/to/glayu/public/directory",
-    "source": "/path/to/glayu/source/directory",
+    "public": "/path/to/glayu/public",
+    "source": "/path/to/glayu/source",
     "theme": "theme_directory_name"
   }
 }
