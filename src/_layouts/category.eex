@@ -1,14 +1,15 @@
 <% use Glayu.EEx %>
-  <% breadcrumbs = parents(@page.category.keys) |> Enum.drop(1) %>
-  <%= if length(breadcrumbs) > 0 do %>
+  <% parents = parents(@page.category.keys) |> Enum.drop(1) %>
+  <%= if length(parents) > 0 do %>
     <div class="bs-component">
       <ul class="breadcrumb">
-        <%= for parent <- breadcrumbs do %>
+        <%= for parent <- parents do %>
           <li><a href="<%= parent.path %>"><%= parent.name %></a></li>
         <% end %>
         <li class="active"><%= @page.category.name %></li>
       </ul>
     </div>
+    <h1><%= @page.category.name %></h1>
   <% end %>
   <div class="row">
     <div class="col-xs-12 col-sm-8">
@@ -18,8 +19,10 @@
           <h2 class="post-title"><a href="<%= post.path %>"><%= post.title %></a></h2>
           <p class="text-muted">
             <strong>
-              <%= Date.format(post.date, "%e %b %Y") %> on
-              <%= (for category <- post.categories |> Enum.drop(1), do: "<a href=\"#{category.path}\">#{category.name}</a>") |> Enum.join(", ") %>
+              <%= Date.format(post.date, "%e %b %Y") %>
+              <%= if length(post.categories) > 1 do %>
+                on <%= (for category <- post.categories |> Enum.drop(1), do: "<a href=\"#{category.path}\">#{category.name}</a>") |> Enum.join(", ") %>
+              <% end %>
             </strong>
           </p>
           <hr>

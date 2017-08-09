@@ -1,5 +1,5 @@
 <% use Glayu.EEx %>
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-default navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#primary-nav">
@@ -8,7 +8,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" style="font-family: 'Just Another Hand', cursive; font-size:35px;" href="/">
+      <a class="navbar-brand" href="/">
         <%= @site.title %>
       </a>
     </div>
@@ -17,9 +17,14 @@
         <%= for page <- pages(), page.path != "/index.html" do %>
           <li<%= if page.path == @page.path do %> class="active"<% end %>><a href="<%= page.path %>"><%= page.title %></a></li>
         <% end %>
+        <%= for category <- categories() do %>
+          <li<%= if category.path == @page.path do %> class="active"<% end %>><a href="<%= category.path %>"><%= category.name %></a></li>
+        <% end %>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#facebook-example"><i class="fa fa-facebook-square fa-lg" aria-hidden="true"></i></a></li>
+        <li><a href="#" title="Show on map"><i class="fa fa-map-marker fa-lg" aria-hidden="true"></i><span class="sr-only">Show on map</span></a></li>
+        <li><a href="#" title="Send e-mail"><i class="fa fa-envelope-o fa-lg" aria-hidden="true"></i><span class="sr-only">E-mail</span></a></li>
+        <li><a href="#" title="Facebook"><i class="fa fa-facebook-square fa-lg" aria-hidden="true"></i><span class="sr-only">Facebook</span></a></li>
       </ul>
     </div>
   </div>

@@ -6,7 +6,23 @@
   margin-bottom: $line-height-computed * 1;
 }
 
-.post-title a {
-  border: 0;
-  border-bottom: 1px solid $hr-border;
+.post-title {
+  a, span {
+    border: 0;
+    border-bottom: 1px solid $hr-border;
+  }
+}
+
+footer {
+  margin: $line-height-computed * 3 0;
+}
+
+footer .list-unstyled li {
+  float: left;
+  margin-right: $navbar-padding-horizontal * 2;
+  margin-bottom: $navbar-padding-vertical * 2;
+}
+
+.navbar-brand {
+  font-family: 'Raleway', sans-serif;
 }
